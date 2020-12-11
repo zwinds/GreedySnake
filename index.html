@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>贪吃蛇</title>
+    <script>
+        var size = 20; //网格大小
+        var rows = 30; //网格行数
+        var cols = 40; //网格列数
+        var c;
+        var snake = []; //保存贪吃蛇的位置信息
+        var snakecount = 4; //贪吃蛇的长度
+        var foodx; //食物x坐标
+        var foody; //食物y坐标
+        var mark; //分数
+        var go = 4; //贪吃蛇爬行方向，左：1；上：2；右：3；下：4
+        var pause = true; //是否暂停
+        var interval; //游戏循环
+
+        function draw() {
+            c.clearRect(0, 0, size * cols, size * rows);
+
+            c.strokeStyle = "gray";
+            for (var i = 1; i <= rows; i++) {
+                c.beginPath();
+                c.moveTo(0, i * size);
+                c.lineTo(size * cols, i * size);
+                c.closePath();
+                c.stroke();
+            } //画横线
+            for (var i = 1; i <= cols; i++) {
+                c.beginPath();
+                c.moveTo(i * size, 0);
+                c.lineTo(i * size, size * rows);
+                c.closePath();
+                c.stroke();
+            } //画竖线
+
+            c.strokeStyle = "white";
+            c.fillStyle = "blue";
+            for (var i = 0; i < snakecount; i++) {
+                c.beginPath();
+                c.fillRect(snake[i].x, snake[i].y, size, size);
+                c.moveTo(snake[i].x, snake[i].y);
+                c.lineTo(snake[i].x + size, snake[i].y);
+                c.lineTo(snake[i].x + size, snake[i].y + size);
+                c.lineTo(snake[i].x, snake[i].y + size);
+                c.closePath();
+                c.stroke();
+            } //画贪吃蛇
+
+            c.fillStyle = "red";
+            c.beginPath();
+            c.fillRect(foodx, foody, size, size);
+            c.moveTo(foodx, foody);
+            c.lineTo(foodx + size, foody);
+            c.lineTo(foodx + size, foody + size);
+            c.lineTo(foodx, foody + size);
+            c.closePath();
+            c.stroke(); //画食物
+        }
+
+        function addfood() {
+            foodx = Math.floor(Math.random() * (cols - 1)) * size;
+            foody = Math.floor(Math.random() * (rows - 1)) * size;
+            while (foodx == 0) {
+                foodx = Math.floor(Math.random() * (cols - 1)) * size;
+            }
+            while (foody == 0) {
+                foody = Math.floor(Math.random() * (rows - 1)) * size;
+            }
+        } //设置食物位置，保证不为第一行(列)、最后一行(列)
+
+        function start() {
+            for (var i = 0; i < snakecount; i++) {
+                snake[i] = {
+                    x: i * size,
+                    y: 0
+                }
+            } //设置贪吃蛇出现的位置
+            addfood();
+            draw();
+            mark.innerHTML = 0;
+        }
+
+        function addsnake() {
+            snakecount++;
+            snake.unshift({
+                x: size * cols,
+                y: size * rows
+            }); //添加新方块至网格外，会在下个游戏循环添加至贪吃蛇
+        }
+
+        function IsEat() {
+            if (snake[snakecount - 1].x == foodx && snake[snakecount - 1].y == foody) {
+                mark.innerHTML = (parseInt(mark.innerHTML) + 1).toString();
+                addfood();
+                addsnake();
+            }
+        }
+
+        function IsDie() {
+            console.log(snakecount)
+            if (snake[snakecount - 1].x == -1 * size || snake[snakecount - 1].y == -1 * size ||
+                snake[snakecount - 1].x == cols * size || snake[snakecount - 1].y == rows * size) {
+                console.log(snakecount)
+                clearInterval(interval);
+                snake.pop(snake[0])
+                snakecount -= 1
+                if (snakecount == 0) {
+                    alert("Game Over!");
+                    window.location.reload();
+                } else {
+                    pause = true;
+                    document.getElementById('pause').innerHTML = "Start";
+                    start()
+                }
+
+                // 
+
+
+            } //贪吃蛇爬行到网格外
+
+            for (var i = 0; i < snakecount - 1; i++) {
+                if (snake[i].x == snake[snakecount - 1].x && snake[i].y == snake[snakecount - 1].y) {
+                    clearInterval(interval);
+                    alert("Game Over!");
+                    window.location.reload();
+                }
+            }
+        } //贪吃蛇缠绕
+        function move() {
+            switch (go) {
+                case 1:
+                    snake.push({
+                        x: snake[snakecount - 1].x - size,
+                        y: snake[snakecount - 1].y
+                    });
+                    break;
+                case 2:
+                    snake.push({
+                        x: snake[snakecount - 1].x,
+                        y: snake[snakecount - 1].y - size
+                    });
+                    break;
+                case 3:
+                    snake.push({
+                        x: snake[snakecount - 1].x + size,
+                        y: snake[snakecount - 1].y
+                    });
+                    break;
+                case 4:
+                    snake.push({
+                        x: snake[snakecount - 1].x,
+                        y: snake[snakecount - 1].y + size
+                    });
+            }
+            snake.shift();
+            IsEat();
+            IsDie();
+            draw();
+        } //游戏循环
+
+
+
+        function keydown(keyCode) {
+            switch (keyCode) {
+                case 37:
+                    if (go != 1 && go != 3)
+                        go = 1;
+                    break;
+                case 38:
+                    if (go != 2 && go != 4)
+                        go = 2;
+                    break;
+                case 39:
+                    if (go != 3 && go != 1)
+                        go = 3;
+                    break;
+                case 40:
+                    if (go != 4 && go != 2)
+                        go = 4;
+                    break;
+                case 32:
+                    if (pause) {
+                        interval = setInterval(move, 130); //开始游戏循环
+                        document.getElementById('pause').innerHTML = "Pause";
+                        pause = false;
+                    } else {
+                        clearInterval(interval);
+                        document.getElementById('pause').innerHTML = "Satrt";
+                        pause = true;
+                    }
+                    break;
+            }
+        } //键盘操作
+
+        window.onload = function () {
+
+            //获取鼠标在canvas上的点击位置
+            canvas.onmousedown = function (evt) {
+                evt = window.event || evt;
+                //获取canvas相对于浏览器圆点的坐标
+                var rect = canvas.getBoundingClientRect();
+                //获取圆心的位置		
+                //获取鼠标在canvas上的位置
+                arcX = (evt.pageX - rect.left) * (canvas.width / rect.width);
+                arcY = (evt.pageY - rect.top) * (canvas.height / rect.height);
+                var snakeX = snake[snake.length - 1].x;
+                var snakeY = snake[snake.length - 1].y;
+                var absX = Math.abs(snakeX - evt.layerX)
+                var absY = Math.abs(snakeY - evt.layerY)
+                if (absX > absY) {
+
+                    if (snakeX - evt.layerX > 0) {
+                        keydown(37)
+                    }
+                    else {
+                        keydown(39)
+                    }
+
+                }
+                if (absX < absY) {
+
+                    if (snakeY - evt.layerY > 0) {
+                        keydown(38)
+                    }
+                    else {
+                        keydown(40)
+                    }
+
+                }
+            }
+
+            c = document.getElementById('canvas').getContext('2d');
+            mark = document.getElementById('mark_con');
+            start();
+            document.onkeydown = function (event) {
+                var event = event || window.event;
+                keydown(event.keyCode);
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: "Microsoft YaHei";
+        }
+
+        #page {
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 20px;
+            width: 1000px;
+            height: 600px;
+            display: -webkit-flex;
+            /* Safari */
+            display: flex;
+            justify-content: space-between;
+            flex-direction: row;
+        }
+
+        #yard {
+            width: 800px;
+            border: 1px solid gray;
+            box-shadow: 0 0 10px black;
+            /* float: right; */
+            display: flex;
+        }
+
+        #help {
+            display: flex;
+            width: 260px;
+            flex-direction: column;
+        }
+
+        #mark {
+            display: flex;
+            font-weight: 800;
+            font-size: 24px;
+        }
+
+        #helper {
+            display: flex;
+            justify-content: flex-start;
+            flex-direction: column;
+
+        }
+
+        .a1 {
+            display: flex;
+            flex-grow: 3;
+            justify-content: center;
+        }
+
+        .a2 {
+            display: flex;
+            flex-grow: 3;
+            justify-content: center;
+        }
+
+        .a3 {
+            display: flex;
+            flex-grow: 3;
+            justify-content: center;
+        }
+
+        .again {
+            display: flex;
+            justify-content: center;
+        }
+
+        #mark_con {
+            color: red;
+        }
+
+        button {
+            width: 60px;
+            height: 30px;
+            color: white;
+            font-weight: bold;
+            border: #A032F9 solid 1px;
+            border-radius: 4px;
+            display: inline-block;
+            background: -moz-linear-gradient(top, #BF6BFE, #9114F5);
+            background: -o-linear-gradient(top, #BF6BFE, #9114F5);
+            background: -webkit-gradient(linear, 0 0, 0 bottom, from(#BF6BFE), to(#9114F5));
+            background: liner-gradient(top, #BF6BFE, #9114F5);
+        }
+
+        button:hover {
+            background: #A032F9;
+            filter: none;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="page">
+        <div id="yard">
+            <canvas id="canvas" width="800" height="600"></canvas>
+        </div>
+        <div id="help">
+            <div id="mark">
+                <span>得分:<span id="mark_con"></span></span>
+            </div>
+            <div id="helper">
+                <div class="a1">
+                    <div class="up">
+                        <button onclick="keydown(38)">上</button>
+                    </div>
+                </div>
+                <div class="a2">
+                    <div class="left">
+                        <button onclick="keydown(37)">左</button>
+                    </div>
+                    <div class="center">
+                        <button onclick="keydown(32)" id="pause">Satrt</button>
+                    </div>
+                    <div class="right">
+                        <button onclick="keydown(39)">右</button>
+                    </div>
+                </div>
+                <div class="a3">
+                    <div class="down">
+                        <button onclick="keydown(40)">下</button>
+                    </div>
+                </div>
+                <div class="again">
+                    <button onclick="window.location.href='index.html'">再玩一次</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
